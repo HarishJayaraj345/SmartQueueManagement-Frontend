@@ -1,0 +1,404 @@
+.welcome-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 18px;
+  border: 1px solid #dbe2ff;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f2f6ff 0%, #f9fbff 100%);
+}
+
+.welcome-tag {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #3c56cc;
+  letter-spacing: 0.04em;
+}
+
+.stepper-panel {
+  margin-top: 0;
+}
+
+.booking-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.booking-step {
+  display: flex;
+  gap: 10px;
+  border: 1px solid #e3e8f8;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}
+
+.booking-step.active {
+  border-color: #3d4df3;
+  box-shadow: 0 0 0 2px rgba(61, 77, 243, 0.08);
+}
+
+.booking-step.done {
+  border-color: #9dd7b2;
+  background: #f6fcf8;
+}
+
+.step-index {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: #2d3d6f;
+  background: #edf1ff;
+  flex-shrink: 0;
+}
+
+.step-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #18264d;
+}
+
+.step-desc {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #62709a;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.quick-action-card {
+  text-align: left;
+  color: #203165;
+  border: 1px solid #dfe5f5;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 14px;
+}
+
+.quick-action-card:hover {
+  background: #f8faff;
+  border-color: #c8d3fb;
+}
+
+.quick-action-card h4 {
+  margin: 0;
+  font-size: 15px;
+  color: #1a2b5e;
+}
+
+.quick-action-card p {
+  margin: 7px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #60709c;
+}
+
+.helper-copy {
+  margin: 8px 0 0;
+  color: #59678f;
+  font-size: 12px;
+}
+
+.proof-card {
+  background: #f7f9ff;
+  border-color: #d8e1ff;
+}
+
+.proof-code {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed #8da4ff;
+  border-radius: 8px;
+  background: #edf2ff;
+  color: #23388f;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.proof-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.proof-actions button {
+  flex: 1;
+}
+
+.alt-btn {
+  background: #5c6785;
+}
+
+.alt-btn:hover {
+  background: #4e5875;
+}
+
+.proof-steps {
+  margin-top: 12px;
+  border-top: 1px solid #dfe5f8;
+  padding-top: 10px;
+}
+
+.proof-steps p {
+  margin: 6px 0;
+  color: #334574;
+  font-size: 13px;
+}
+
+.table-action-btn {
+  background: #2f49ca;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.table-action-btn:hover {
+  background: #253da9;
+}
+
+.badge.status-waiting {
+  background: #fff4d8;
+  color: #9a6700;
+}
+
+.badge.status-serving {
+  background: #dde9ff;
+  color: #1f4db8;
+}
+
+.badge.status-expired {
+  background: #eceff5;
+  color: #5a6377;
+}
+
+.badge.status-default {
+  background: #eaf8ef;
+  color: #188449;
+}
+
+.live-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.live-heading .page-subtitle {
+  margin-bottom: 0;
+}
+
+.live-refresh-btn {
+  min-width: 112px;
+}
+
+.live-toolbar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.live-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.live-summary-card {
+  border: 1px solid #dfe5f5;
+  border-radius: 8px;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.live-summary-card p {
+  margin: 0;
+  color: #68728b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.live-summary-card strong {
+  display: block;
+  margin-top: 6px;
+  color: #142047;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.live-summary-card span {
+  display: block;
+  margin-top: 4px;
+  color: #68728b;
+  font-size: 12px;
+}
+
+.live-queue-board {
+  margin-top: 16px;
+}
+
+.live-queue-row {
+  grid-template-columns: minmax(180px, 1fr) 120px 90px 100px 80px;
+  background: #ffffff;
+}
+
+.queue-service-main strong {
+  color: #142047;
+}
+
+.queue-service-main p {
+  margin: 5px 0 0;
+}
+
+.queue-load-track {
+  height: 7px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf1f7;
+}
+
+.queue-load-track span {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #23a455, #f0b429);
+}
+
+.queue-metric {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.queue-metric span {
+  color: #68728b;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.queue-metric strong {
+  color: #0f1b42;
+  font-size: 16px;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.queue-book-btn {
+  padding: 8px 10px;
+  min-height: 36px;
+  font-size: 12px;
+}
+
+.empty-live-state {
+  border: 1px dashed #cbd4ea;
+  border-radius: 8px;
+  padding: 18px;
+  background: #fbfcff;
+  color: #31406b;
+}
+
+.empty-live-state p {
+  margin: 6px 0 0;
+  color: #68728b;
+  font-size: 13px;
+}
+
+.live-update-card {
+  background: #ffffff;
+}
+
+.live-update-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.live-update-grid p {
+  margin: 0;
+}
+
+@media (max-width: 980px) {
+  .booking-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .live-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .live-queue-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .queue-service-main,
+  .queue-book-btn {
+    grid-column: 1 / -1;
+  }
+
+  .queue-metric {
+    justify-items: start;
+  }
+
+  .queue-metric span,
+  .queue-metric strong {
+    text-align: left;
+  }
+
+  .live-update-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .proof-actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .welcome-panel {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px;
+  }
+
+  .live-heading {
+    flex-direction: column;
+  }
+
+  .live-refresh-btn {
+    width: 100%;
+  }
+
+  .live-toolbar,
+  .live-summary-grid,
+  .live-update-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .live-queue-row {
+    grid-template-columns: 1fr;
+  }
+}
