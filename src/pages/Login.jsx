@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axiosInstance from '../api/axiosConfig.jsx'
+import { createDemoSession, isDemoMode } from '../utils/demoAuth.js'
 import './Login.css'
 
 function Login() {
   const navigate = useNavigate()
+  const demoMode = isDemoMode()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -22,6 +24,16 @@ function Login() {
     setLoading(true)
 
     try {
+      if (demoMode) {
+        createDemoSession({
+          email: email || 'demo@qsmart.app',
+          name: (email || 'demo').split('@')[0] || 'Demo User',
+          role: 'USER'
+        })
+        navigate('/dashboard')
+        return
+      }
+
       const response = await axiosInstance.post('/api/auth/login', { email, password })
       const { token, role } = response.data || {}
 
@@ -56,9 +68,11 @@ function Login() {
           <p className="login-visual-copy">Stay organized, reduce waiting time and provide better service experience.</p>
         </div>
 
-        <div className="auth-card login-auth-card">
+          <div className="auth-card login-auth-card">
           <h2>Welcome Back!</h2>
-          <p className="page-subtitle login-subtitle">Login to your account</p>
+          <p className="page-subtitle login-subtitle">
+            {demoMode ? 'Live demo mode - no username or password required' : 'Login to your account'}
+          </p>
 
           <form className="auth-form login-form" onSubmit={handleSubmit}>
             <label>
@@ -68,7 +82,7 @@ function Login() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="Enter your email"
-                required
+                required={!demoMode}
               />
             </label>
 
@@ -79,7 +93,7 @@ function Login() {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Enter your password"
-                required
+                required={!demoMode}
               />
             </label>
 

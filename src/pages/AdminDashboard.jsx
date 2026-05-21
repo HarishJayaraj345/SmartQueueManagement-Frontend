@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import axiosInstance from '../api/axiosConfig.jsx'
+import { isDemoMode } from '../utils/demoAuth.js'
+import {
+  demoBranchPerformance,
+  demoBranches,
+  demoClients,
+  demoDatabaseSnapshot,
+  demoOverview,
+  demoPeakHours,
+  demoServiceAnalytics,
+  demoSummary
+} from '../utils/demoData.js'
 import './AdminDashboard.css'
 
 const emptyOverview = {
@@ -101,6 +112,7 @@ function getHealthTone(score) {
 }
 
 function AdminDashboard() {
+  const demoMode = isDemoMode()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [overview, setOverview] = useState(emptyOverview)
   const [branchPerformance, setBranchPerformance] = useState([])
@@ -293,6 +305,15 @@ function AdminDashboard() {
   }, [enrichedBranches])
 
   async function loadDashboardData() {
+    if (demoMode) {
+      setOverview(demoOverview)
+      setBranchPerformance(demoBranchPerformance)
+      setServiceAnalytics(demoServiceAnalytics)
+      setPeakHours(demoPeakHours)
+      setSummary(demoSummary)
+      return
+    }
+
     const [overviewResult, branchPerformanceResult, serviceAnalyticsResult, peakHoursResult, summaryResult] = await Promise.allSettled([
       axiosInstance.get('/api/admin/dashboard/overview'),
       axiosInstance.get('/api/admin/dashboard/branch-performance'),
@@ -344,6 +365,12 @@ function AdminDashboard() {
   }
 
   async function loadAdminClients() {
+    if (demoMode) {
+      setClients(demoClients)
+      setSelectedClientId(String(demoClients[0]?.id || ''))
+      return
+    }
+
     try {
       const response = await axiosInstance.get('/api/admin/clients')
       const payload = getListPayload(response.data)
@@ -357,6 +384,11 @@ function AdminDashboard() {
   }
 
   async function loadAdminBranches() {
+    if (demoMode) {
+      setBranches(demoBranches)
+      return
+    }
+
     try {
       const response = await axiosInstance.get('/api/admin/branches')
       const payload = getListPayload(response.data)
@@ -368,6 +400,12 @@ function AdminDashboard() {
   }
 
   async function loadDatabaseData() {
+    if (demoMode) {
+      setDatabaseSnapshot(demoDatabaseSnapshot)
+      setMessage('Demo database snapshot refreshed.')
+      return
+    }
+
     try {
       const response = await axiosInstance.get('/api/admin/database')
       setDatabaseSnapshot(response.data || { counts: {} })
@@ -426,6 +464,31 @@ function AdminDashboard() {
       setLoading(true)
       setError('')
       setMessage('')
+
+      if (demoMode) {
+        const nextClient = {
+          id: `demo-client-${Date.now()}`,
+          clientId: `demo-client-${Date.now()}`,
+          clientName: payload.clientName,
+          name: payload.clientName,
+          clientType: payload.clientType,
+          type: payload.clientType,
+          contactEmail: payload.contactEmail,
+          email: payload.contactEmail,
+          contactPhone: payload.contactPhone,
+          phoneNumber: payload.contactPhone,
+          headOfficeCity: payload.headOfficeCity,
+          status: 'ACTIVE',
+          createdAt: new Date().toISOString().slice(0, 10)
+        }
+        setClients((prev) => [nextClient, ...prev])
+        setSelectedClientId(String(nextClient.id))
+        setShowCreateClient(false)
+        setClientForm({ clientName: '', clientType: 'HOSPITAL', headOfficeCity: '', email: '', phoneNumber: '' })
+        setMessage('Demo: client added to the front-end view.')
+        return
+      }
+
       const response = await axiosInstance.post('/api/admin/clients', payload)
       const created = response.data || {}
       const nextClient = {
@@ -804,6 +867,7 @@ function AdminDashboard() {
       <>
         <h2>Reports</h2>
         {renderOverviewCards()}
+        {renderServiceAnalytics()}
         {renderPeakHours()}
       </>
     )

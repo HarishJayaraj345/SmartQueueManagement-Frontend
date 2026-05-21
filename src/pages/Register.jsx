@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axiosInstance from '../api/axiosConfig.jsx'
+import { createDemoSession, isDemoMode } from '../utils/demoAuth.js'
 
 function Register() {
   const navigate = useNavigate()
+  const demoMode = isDemoMode()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
@@ -23,6 +25,16 @@ function Register() {
     setLoading(true)
 
     try {
+      if (demoMode) {
+        createDemoSession({
+          email: email || 'demo@qsmart.app',
+          name: name || 'Demo User',
+          role: 'USER'
+        })
+        navigate('/dashboard')
+        return
+      }
+
       const response = await axiosInstance.post('/api/auth/register', {
         fullName: name,
         email,
@@ -63,7 +75,9 @@ function Register() {
 
       <div className="auth-card">
         <h2>Create Account</h2>
-        <p className="page-subtitle">Register to continue</p>
+        <p className="page-subtitle">
+          {demoMode ? 'Live demo mode - click Create Account to enter' : 'Register to continue'}
+        </p>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label>
@@ -73,7 +87,7 @@ function Register() {
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Enter your name"
-              required
+              required={!demoMode}
             />
           </label>
 
@@ -84,7 +98,7 @@ function Register() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="Enter your email"
-              required
+              required={!demoMode}
             />
           </label>
 
@@ -96,7 +110,7 @@ function Register() {
               onChange={(event) => setPhoneNumber(event.target.value)}
               placeholder="Enter 10-digit phone number"
               pattern="[0-9]{10}"
-              required
+              required={!demoMode}
             />
           </label>
 
@@ -107,7 +121,7 @@ function Register() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Enter your password"
-              required
+              required={!demoMode}
             />
           </label>
 

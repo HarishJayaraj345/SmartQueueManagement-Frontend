@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import axiosInstance from '../api/axiosConfig.jsx'
+import { isDemoMode } from '../utils/demoAuth.js'
+import {
+  demoBranches,
+  demoClientProfile,
+  demoCounters,
+  demoQueue
+} from '../utils/demoData.js'
 import './ClientDashboard.css'
 
 const defaultClientProfile = {
@@ -38,12 +45,8 @@ function getClientDisplayName(profile) {
   return profile?.clientName || profile?.name || 'Client'
 }
 
-function getClientBrandingById(clientId) {
+function getClientBrandingById() {
   return null
-}
-
-function getNormalizedEmail(email) {
-  return String(email || '').trim().toLowerCase()
 }
 
 function getJwtPayload(token) {
@@ -87,6 +90,7 @@ function getBookedUserDisplayName(token) {
 }
 
 function ClientDashboard() {
+  const demoMode = isDemoMode()
   const sessionClientId = resolveClientIdFromSession()
   const sessionBrand = getClientBrandingById(sessionClientId)
   const [activeTab, setActiveTab] = useState('control')
@@ -119,6 +123,11 @@ function ClientDashboard() {
   }, [clientType])
 
   async function loadClientProfile() {
+    if (demoMode) {
+      setClientProfile(demoClientProfile)
+      return
+    }
+
     try {
       const response = await axiosInstance.get('/api/client/profile')
       const payload = response.data || {}
@@ -150,6 +159,11 @@ function ClientDashboard() {
   }
 
   async function loadBranches() {
+    if (demoMode) {
+      setBranches(demoBranches.filter((branch) => String(branch.clientId) === String(demoClientProfile.clientId)))
+      return
+    }
+
     try {
       const response = await axiosInstance.get('/api/client/branches')
       const payload = getListPayload(response.data)
@@ -176,6 +190,12 @@ function ClientDashboard() {
   }
 
   async function loadCounters() {
+    if (demoMode) {
+      setCounters(demoCounters)
+      setSelectedCounterId(getId(demoCounters[0]))
+      return
+    }
+
     try {
       const response = await axiosInstance.get('/api/client/counters')
       const payload = getListPayload(response.data)
@@ -194,6 +214,12 @@ function ClientDashboard() {
   async function loadQueue(counterId) {
     if (!counterId) {
       setQueueList([])
+      return
+    }
+
+    if (demoMode) {
+      setQueueList(demoQueue)
+      setCurrentToken(demoQueue.find((item) => item.status === 'SERVING') || null)
       return
     }
 
@@ -216,6 +242,10 @@ function ClientDashboard() {
       setError('')
       setMessage('')
       await Promise.all([loadClientProfile(), loadBranches(), loadCounters()])
+
+      if (demoMode) {
+        return
+      }
 
       try {
         const publicClientsResponse = await axiosInstance.get('/api/public/clients')
@@ -269,6 +299,25 @@ function ClientDashboard() {
       setLoading(true)
       setError('')
       setMessage('')
+
+      if (demoMode) {
+        const nextToken = queueList.find((item) => item.status === 'WAITING')
+        if (!nextToken) {
+          setError('No waiting tokens in the demo queue.')
+          return
+        }
+
+        const updatedQueue = queueList.map((item) => {
+          if (item.id === nextToken.id) return { ...item, status: 'SERVING' }
+          if (item.status === 'SERVING') return { ...item, status: 'COMPLETED' }
+          return item
+        })
+        setQueueList(updatedQueue)
+        setCurrentToken({ ...nextToken, status: 'SERVING' })
+        setMessage('Demo: next token called successfully.')
+        return
+      }
+
       const response = await axiosInstance.post(`/api/client/counters/${selectedCounterId}/next-token`)
       setCurrentToken(response.data || null)
       setMessage('Next token called successfully.')
@@ -292,6 +341,22 @@ function ClientDashboard() {
       setLoading(true)
       setError('')
       setMessage('')
+
+      if (demoMode) {
+        if (!currentToken) {
+          setError('No active token to complete in the demo queue.')
+          return
+        }
+
+        const updatedQueue = queueList.map((item) => (
+          item.id === currentToken.id ? { ...item, status: 'COMPLETED' } : item
+        ))
+        setQueueList(updatedQueue)
+        setCurrentToken(null)
+        setMessage('Demo: current token completed successfully.')
+        return
+      }
+
       const response = await axiosInstance.post(`/api/client/counters/${selectedCounterId}/complete-token`)
       setCurrentToken(response.data || null)
       setMessage('Current token completed successfully.')
@@ -322,6 +387,24 @@ function ClientDashboard() {
       setLoading(true)
       setError('')
       setMessage('')
+
+      if (demoMode) {
+        const nextBranch = {
+          id: `demo-branch-${Date.now()}`,
+          branchId: `demo-branch-${Date.now()}`,
+          clientId: demoClientProfile.clientId,
+          name: payload.name,
+          branchName: payload.name,
+          city: payload.city || '-',
+          status: payload.status,
+          counters: 0
+        }
+        setBranches((prev) => [nextBranch, ...prev])
+        setBranchForm({ name: '', city: '', status: 'ACTIVE' })
+        setMessage('Demo: branch added to the front-end view.')
+        return
+      }
+
       const response = await axiosInstance.post('/api/client/branches', payload)
       const created = response.data || {}
       const nextBranch = {
@@ -365,6 +448,26 @@ function ClientDashboard() {
       setLoading(true)
       setError('')
       setMessage('')
+
+      if (demoMode) {
+        const nextCounter = {
+          id: `demo-counter-${Date.now()}`,
+          counterId: `demo-counter-${Date.now()}`,
+          name: payload.counterName,
+          counterName: payload.counterName,
+          serviceName: payload.serviceName,
+          type: payload.type,
+          branchId: payload.branchId,
+          branchName: getBranchDisplayName(selectedBranch),
+          status: 'ACTIVE'
+        }
+        setCounters((prev) => [nextCounter, ...prev])
+        setSelectedCounterId(getId(nextCounter))
+        setCounterForm({ branchId: '', serviceName: '', counterName: '', type: 'Service' })
+        setMessage('Demo: counter added to the front-end view.')
+        return
+      }
+
       const response = await axiosInstance.post('/api/client/counters', payload)
       const created = response.data || {}
       const nextCounter = {

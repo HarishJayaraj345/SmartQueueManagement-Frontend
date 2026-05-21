@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import axiosInstance from '../api/axiosConfig.jsx'
+import { isDemoMode } from '../utils/demoAuth.js'
+import {
+  demoClients,
+  demoUserTokens,
+  getDemoBranchesByClient,
+  getDemoEstimatedWait,
+  getDemoLiveStatus,
+  getDemoServicesByBranch
+} from '../utils/demoData.js'
 import {
   connectQueueSocket,
   disconnectQueueSocket,
@@ -83,6 +92,8 @@ function getStatusBadgeClass(status) {
 }
 
 function UserDashboard() {
+  const demoMode = isDemoMode()
+  const defaultDemoLiveStatus = demoMode ? getDemoLiveStatus('service-1') : null
   const userEmail = localStorage.getItem('qsmart_user_email') || 'john@example.com'
   const userName = localStorage.getItem('qsmart_user_name') || userEmail.split('@')[0] || 'User'
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -96,7 +107,17 @@ function UserDashboard() {
 
   const [estimatedWait, setEstimatedWait] = useState({ estimatedWaitTime: '15-20 mins' })
   const [bookedTokens, setBookedTokens] = useState([])
-  const [liveQueueEvent, setLiveQueueEvent] = useState(null)
+  const [liveQueueEvent, setLiveQueueEvent] = useState(() => (
+    defaultDemoLiveStatus
+      ? {
+          tokenNumber: defaultDemoLiveStatus.currentServingToken,
+          status: defaultDemoLiveStatus.statusMessage,
+          currentServingToken: defaultDemoLiveStatus.currentServingToken,
+          waitingCount: defaultDemoLiveStatus.waitingCount,
+          message: `${defaultDemoLiveStatus.waitingCount} customers are waiting for this service.`
+        }
+      : null
+  ))
   const [liveQueueRows, setLiveQueueRows] = useState([])
   const [liveLastUpdated, setLiveLastUpdated] = useState(null)
   const [liveLoading, setLiveLoading] = useState(false)
@@ -107,6 +128,11 @@ function UserDashboard() {
   const [proofMessage, setProofMessage] = useState('')
 
   async function loadMyTokens(showErrorOnFailure = true) {
+    if (demoMode) {
+      setBookedTokens(demoUserTokens.map(normalizeTokenForUserView))
+      return
+    }
+
     try {
       const response = await axiosInstance.get('/api/user/tokens')
       const payload = getListPayload(response.data)
@@ -126,6 +152,10 @@ function UserDashboard() {
   }
 
   async function fetchBranchesByClient(clientId) {
+    if (demoMode) {
+      return getDemoBranchesByClient(clientId)
+    }
+
     try {
       const response = await axiosInstance.get(`/api/public/clients/${clientId}/branches`)
       const payload = getListPayload(response.data)
@@ -136,6 +166,10 @@ function UserDashboard() {
   }
 
   async function fetchServicesByBranch(branchId) {
+    if (demoMode) {
+      return getDemoServicesByBranch(branchId)
+    }
+
     try {
       const response = await axiosInstance.get(`/api/public/branches/${branchId}/services`)
       const payload = getListPayload(response.data)
@@ -148,6 +182,11 @@ function UserDashboard() {
   async function loadEstimatedWait(branchId, serviceId) {
     if (!branchId || !serviceId) {
       setEstimatedWait(null)
+      return
+    }
+
+    if (demoMode) {
+      setEstimatedWait(getDemoEstimatedWait(serviceId))
       return
     }
 
@@ -166,6 +205,20 @@ function UserDashboard() {
     if (!branchId || !serviceList.length) {
       setLiveQueueRows([])
       setLiveLastUpdated(null)
+      return
+    }
+
+    if (demoMode) {
+      const rows = serviceList.map((service) => {
+        const serviceId = getEntityId(service)
+        return {
+          service,
+          liveStatus: getDemoLiveStatus(serviceId),
+          estimatedWait: getDemoEstimatedWait(serviceId)
+        }
+      })
+      setLiveQueueRows(rows)
+      setLiveLastUpdated(new Date().toISOString())
       return
     }
 
@@ -198,15 +251,16 @@ function UserDashboard() {
     } finally {
       setLiveLoading(false)
     }
-  }, [selectedBranchId, services])
+  }, [demoMode, selectedBranchId, services])
 
   async function initializeBookingOptions() {
     try {
       setLoading(true)
       setError('')
 
-      const clientResponse = await axiosInstance.get('/api/public/clients')
-      const clientPayload = getListPayload(clientResponse.data)
+      const clientPayload = demoMode
+        ? demoClients
+        : getListPayload((await axiosInstance.get('/api/public/clients')).data)
       const availableClients = clientPayload
       setClients(availableClients)
 
@@ -260,6 +314,10 @@ function UserDashboard() {
       loadMyTokens(false)
     })
 
+    if (demoMode) {
+      return undefined
+    }
+
     connectQueueSocket(
       () => {},
       () => {}
@@ -271,6 +329,10 @@ function UserDashboard() {
   }, [])
 
   useEffect(() => {
+    if (demoMode) {
+      return undefined
+    }
+
     if (!selectedBranchId || !selectedServiceId) {
       unsubscribeQueue()
       return
@@ -424,6 +486,26 @@ function UserDashboard() {
     try {
       setLoading(true)
       setError('')
+
+      if (demoMode) {
+        const selectedClient = clients.find((client) => getEntityId(client) === String(selectedClientId))
+        const selectedBranch = branches.find((branch) => getEntityId(branch) === String(selectedBranchId))
+        const selectedService = services.find((service) => getEntityId(service) === String(selectedServiceId))
+        const nextToken = normalizeTokenForUserView({
+          id: `demo-token-${Date.now()}`,
+          tokenNumber: `D-${Math.floor(100 + Math.random() * 900)}`,
+          clientName: getEntityName(selectedClient) || 'MediCare City Hospital',
+          branchName: getEntityName(selectedBranch) || 'Anna Nagar Main Branch',
+          serviceName: getEntityName(selectedService) || 'General Consultation',
+          status: 'WAITING',
+          bookedAt: new Date().toISOString()
+        })
+        setBookedTokens((prev) => [nextToken, ...prev])
+        setProofToken(nextToken)
+        setProofMessage('Demo ticket proof is ready. This is front-end sample data.')
+        return
+      }
+
       const response = await axiosInstance.post('/api/user/tokens', {
         branchId: selectedBranchId,
         serviceId: selectedServiceId
